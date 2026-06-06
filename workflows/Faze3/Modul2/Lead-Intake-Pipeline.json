@@ -1,0 +1,181 @@
+{
+  "name": "Lead-Intake-Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-intake",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "976d8c9f-655d-41cd-ba64-8c6cbb509062",
+      "name": "Webhook",
+      "webhookId": "962b35f6-3604-4950-9c06-ebe43939f9c2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst body = item.body ?? item;\nreturn [{\n  json: {\n    first_name: body.first_name?.trim() ?? '',\n    last_name: body.last_name?.trim() ?? '',\n    full_name: `${body.first_name?.trim() ?? ''} ${body.last_name?.trim() ?? ''}`,\n    email: body.email?.trim()?.toLowerCase() ?? '',\n    company: body.company?.trim() ?? '',\n    message: body.message?.trim() ?? '',\n    received_at: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "caeafde8-a8f1-46e2-8694-c9ad1c5d0c43",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "z9TcBuqk3MlxEitr",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/z9TcBuqk3MlxEitr",
+          "cachedResultName": "Lead-Intake-Pipeline-enrich"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "d822992d-2765-4967-afc3-264f908cc2c0",
+      "name": "Call 'Lead-Intake-Pipeline-enrich'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "OmWk3RCrzIeL2Gpj",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/OmWk3RCrzIeL2Gpj",
+          "cachedResultName": "Lead-Intake-Pipeline-classify"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "44ae5f74-c7ee-4a08-8bb3-4edc7978d62b",
+      "name": "Call 'Lead-Intake-Pipeline-classify'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "qBEYZsb8szF33gPg",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/qBEYZsb8szF33gPg",
+          "cachedResultName": "Lead-Intake-Pipeline-notify"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        832,
+        0
+      ],
+      "id": "b97beb66-fdbf-44ba-b151-fe420e9f69ca",
+      "name": "Call 'Lead-Intake-Pipeline-notify'"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Call 'Lead-Intake-Pipeline-enrich'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Lead-Intake-Pipeline-enrich'": {
+      "main": [
+        [
+          {
+            "node": "Call 'Lead-Intake-Pipeline-classify'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Lead-Intake-Pipeline-classify'": {
+      "main": [
+        [
+          {
+            "node": "Call 'Lead-Intake-Pipeline-notify'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "ykoQMawMQ5WsyyJm",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "90ace585-bce8-4feb-b65f-242fdf6852eb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3232b5b8e9f4019cace588d1d5baeffa94962a1b8e3a3bab111aeb6383547478"
+  },
+  "id": "ykoQMawMQ5WsyyJm",
+  "tags": []
+}

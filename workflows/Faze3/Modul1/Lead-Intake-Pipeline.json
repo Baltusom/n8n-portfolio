@@ -1,0 +1,218 @@
+{
+  "name": "Lead-Intake-Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-intake",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2e71b85b-90b0-43ca-9ab7-a07130ed7a09",
+      "name": "Webhook",
+      "webhookId": "962b35f6-3604-4950-9c06-ebe43939f9c2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst body = item.body || item;\n\nreturn [{\n  json: {\n    first_name: (body.first_name || '').trim(),\n    last_name: (body.last_name || '').trim(),\n    full_name: `${(body.first_name || '').trim()} ${(body.last_name || '').trim()}`,\n    email: (body.email || '').trim().toLowerCase(),\n    company: (body.company || '').trim(),\n    message: (body.message || '').trim(),\n    received_at: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "37a2bc9a-088c-4290-b1ca-241379042876",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ZNpidbw1xh1e1ryR",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ZNpidbw1xh1e1ryR",
+          "cachedResultName": "Lead-Intake-Pipeline-enrich"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "000b7e62-6665-4bbe-ae74-09e7ecb9d152",
+      "name": "Call 'Lead-Intake-Pipeline-enrich'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "dQIgWL055UgrBauq",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/dQIgWL055UgrBauq",
+          "cachedResultName": "Lead-Intake-Pipeline-classify"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "2ec73522-76f6-4ba5-9e87-db36e17e3e00",
+      "name": "Call 'Lead-Intake-Pipeline-classify'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Hx4kD0zkdYe1lbBG",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Hx4kD0zkdYe1lbBG",
+          "cachedResultName": "Lead-Intake-Pipeline-notify"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        832,
+        0
+      ],
+      "id": "0020442a-78b6-4099-9dd8-76520c3d1113",
+      "name": "Call 'Lead-Intake-Pipeline-notify'"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ],
+      "id": "e54f7929-ebfb-48db-81b5-1de9646f6900",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discordapp.com/api/webhooks/1510306944651362345/vK0u9o6Zt0Uo_rm6mPImm3E-F61OjgzVyLglRs1YWPQTfJHYj1k-bHUwwTFz6S5a3JQz",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"content\": \"❌ Lead Intake Pipeline error: {{ $json.execution.error.message }} | Workflow: {{ $json.execution.workflowName }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        192,
+        -240
+      ],
+      "id": "92ef888c-f78d-48d8-8542-2111d56d8f2f",
+      "name": "Discord"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Call 'Lead-Intake-Pipeline-enrich'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Lead-Intake-Pipeline-enrich'": {
+      "main": [
+        [
+          {
+            "node": "Call 'Lead-Intake-Pipeline-classify'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Lead-Intake-Pipeline-classify'": {
+      "main": [
+        [
+          {
+            "node": "Call 'Lead-Intake-Pipeline-notify'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7a98d83b-7c67-4b92-8a5f-f86af8a3b666",
+  "meta": {
+    "instanceId": "f5b6ad2f09a8fc74e49691b8064af36d09bdc40778cf2616d7ad40aabd9c57fc"
+  },
+  "nodeGroups": [],
+  "id": "k5K4yw5IrMQWEfU7",
+  "tags": []
+}

@@ -1,0 +1,135 @@
+{
+  "name": "Lead-Intake-Pipeline-notify",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        0
+      ],
+      "id": "7fbcd078-d4bf-4c22-b13d-13aa0035b50d",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/pages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_NOTION_TOKEN"
+            },
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        272,
+        0
+      ],
+      "id": "182dc5d5-61ac-42c1-9cf4-6c7b88d8f717",
+      "name": "Notion"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discordapp.com/api/webhooks/1510306944651362345/vK0u9o6Zt0Uo_rm6mPImm3E-F61OjgzVyLglRs1YWPQTfJHYj1k-bHUwwTFz6S5a3JQz",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{ $('Code in JavaScript').item.json.label + ' Nový lead! Name: ' + $('Code in JavaScript').item.json.full_name + ' | Company: ' + $('Code in JavaScript').item.json.company + ' | Score: ' + String($('Code in JavaScript').item.json.score) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        480,
+        0
+      ],
+      "id": "6bca8f08-b971-4664-a1e3-c6af3fa0af2f",
+      "name": "Discord"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nlet label = \"Low\";\nif (item.score >= 80) label = \"High Quality\";\nelse if (item.score >= 50) label = \"Medium\";\nelse if (item.score === null || item.score === undefined) label = \"Unverified\";\n\nreturn [{\n  json: {\n    label: label,\n    full_name: item.full_name ?? \"\",\n    email: item.email ?? \"\",\n    company: item.company ?? \"\",\n    score: item.score ?? 0,\n    linkedin_url: item.linkedin_url ?? null,\n    received_at: item.received_at,\n    body: {\n      parent: {\n        database_id: \"37087922-0078-80d5-a5a9-f147b7f48cc2\"\n      },\n      properties: {\n        Name: {\n          title: [{ text: { content: item.full_name ?? \"\" } }]\n        },\n        Company: {\n          rich_text: [{ text: { content: item.company ?? \"\" } }]\n        },\n        Score: {\n          number: item.score ?? 0\n        },\n        LinkedIn: {\n          url: item.linkedin_url ?? null\n        },\n        Status: {\n          select: { name: \"new\" }\n        },\n        \"Received At\": {\n          date: { start: item.received_at }\n        }\n      }\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f423855d-d328-4286-804a-1865beffd9fa",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a22d8b91-3830-421a-ab29-6fff095d3127",
+  "meta": {
+    "instanceId": "f5b6ad2f09a8fc74e49691b8064af36d09bdc40778cf2616d7ad40aabd9c57fc"
+  },
+  "nodeGroups": [],
+  "id": "Hx4kD0zkdYe1lbBG",
+  "tags": []
+}

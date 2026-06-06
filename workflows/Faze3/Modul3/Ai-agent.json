@@ -1,0 +1,295 @@
+{
+  "name": "Ai-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant for OptimiumAI agency. \n\nIMPORTANT: For ANY question about OptimiumAI, its services, pricing, packages, process, or contact information, you MUST call the Call 'WF7-rag-search' tool first. Never answer questions about OptimiumAI from memory.\n\nFor math calculations always use the Code_Tool calculator. \nFor weather always use the get_weather tool. \nAnswer in the same language the user writes in."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "8d3d36f3-ac31-4a2b-bcf8-7b61ff874bb6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        224,
+        208
+      ],
+      "id": "1af82111-a94a-4e64-9047-8082e345f9ef",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "42f1b0a9-446f-4a86-993d-cb5c70c8727b",
+      "name": "When chat message received",
+      "webhookId": "8ab77f1d-28dd-448d-b409-baf7a7e64f3e"
+    },
+    {
+      "parameters": {
+        "toolDescription": "You MUST use this tool whenever the user asks about weather. Input: city name as string.",
+        "url": "=https://wttr.in/{{ $fromAI('city') }}?format=3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        1008,
+        112
+      ],
+      "id": "634eb276-b8c1-4a83-a83b-fc5438bb1b98",
+      "name": "get_weather"
+    },
+    {
+      "parameters": {
+        "description": "Use this tool to perform mathematical calculations. Input parameter name: input. Type: string containing mathematical expression.",
+        "jsCode": "return String(eval(query));"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        848,
+        192
+      ],
+      "id": "f19afa18-096a-4727-9260-3f937a111a88",
+      "name": "Code Tool"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to submit a new lead. Required fields: first_name, last_name, company. Optional: email, message.",
+        "method": "POST",
+        "url": "http://n8n:5678/webhook/lead-intake",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"first_name\": \"{{ $fromAI('first_name') }}\",\n  \"last_name\": \"{{ $fromAI('last_name') }}\",\n  \"company\": \"{{ $fromAI('company') }}\",\n  \"message\": \"{{ $fromAI('message') }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        672,
+        272
+      ],
+      "id": "7060924c-846a-44bb-a1ae-7b3b34c1cb1d",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        352
+      ],
+      "id": "2216e8fb-1cbb-4b0e-a93e-e8f1c1320d58",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discordapp.com/api/webhooks/1510306944651362345/vK0u9o6Zt0Uo_rm6mPImm3E-F61OjgzVyLglRs1YWPQTfJHYj1k-bHUwwTFz6S5a3JQz",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"🔴 **AI Agent error!** Workflow: {{ $workflow.name }} Error: {{ $json.execution.error.message }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -96,
+        352
+      ],
+      "id": "21083158-a1e4-45bc-8b2a-13bc90c02e4e",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        64,
+        208
+      ],
+      "id": "ec534ce9-146d-4dc6-9e23-35473db3df4f",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "gPji4iP6Kv2B14PS",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Use this tool to search the knowledge base for any factual question about products, technical specifications, models, RAG systems, PDF processing, or n8n. Always use this tool when the user asks about specific data, numbers, or technical details. Pass the user's question as the query.",
+        "workflowId": {
+          "__rl": true,
+          "value": "rsywG4XATFxTtRFp",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/rsywG4XATFxTtRFp",
+          "cachedResultName": "WF7-rag-search"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ $fromAI('query', 'The search query string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        176
+      ],
+      "id": "6495969e-bc3e-4be7-ad2b-8c628da5bf2c",
+      "name": "Call 'WF7-rag-search'"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_weather": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'WF7-rag-search'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e065a429-7741-4427-b6e3-21ec8a8d7f9f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f5b6ad2f09a8fc74e49691b8064af36d09bdc40778cf2616d7ad40aabd9c57fc"
+  },
+  "nodeGroups": [],
+  "id": "RlDHe4Fv2AsRtrR3",
+  "tags": []
+}

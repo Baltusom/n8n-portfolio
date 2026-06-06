@@ -1,0 +1,231 @@
+{
+  "name": "Lead-Intake-Pipeline-notify",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "38a4508a-70b9-4d62-88c6-73f1bda607c2",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "high_quality",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "dbd58083-78aa-484e-8976-4455e68283c8"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "high_quality"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c5ce4946-71bc-4473-9e4c-f635376e27f1",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "medium",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "medium"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a25f2cb6-a341-4cc8-bb03-c974a6aee423",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "low",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "low"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        -16
+      ],
+      "id": "f90bc35a-fd5f-46d5-8e68-ee654dbb0b07",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.notion.com/v1/pages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Notion-Version",
+              "value": "2022-06-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        784,
+        -128
+      ],
+      "id": "32c4c328-5ae2-4e18-8508-615111cb1104",
+      "name": "Notion"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discordapp.com/api/webhooks/1510306944651362345/vK0u9o6Zt0Uo_rm6mPImm3E-F61OjgzVyLglRs1YWPQTfJHYj1k-bHUwwTFz6S5a3JQz",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"content\": \"🟢 **Nový high-quality lead!**\\nName: {{ $('Code in JavaScript').item.json.full_name }}\\nEmail: {{ $('Code in JavaScript').item.json.email }}\\nCompany: {{ $('Code in JavaScript').item.json.company }}\\nScore: {{ $('Code in JavaScript').item.json.score }}\\nLinkedIn: {{ $('Code in JavaScript').item.json.linkedin_url }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        992,
+        -128
+      ],
+      "id": "9e3c4a01-a147-4f22-92e9-9978c0e74752",
+      "name": "Discord"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst company = item.company?.trim() ?? \"\";\n\nreturn [{\n  json: {\n    full_name: item.full_name ?? 'N/A',\n    email: item.email ?? 'N/A',\n    company: company,\n    score: item.score ?? 0,\n    linkedin_url: item.linkedin_url ?? 'N/A',\n    body: {\n      parent: { database_id: \"37087922-0078-80d5-a5a9-f147b7f48cc2\" },\n      properties: {\n        Name: { title: [{ text: { content: item.full_name ?? \"\" } }] },\n        Company: { rich_text: [{ text: { content: company } }] },\n        Score: { number: item.score ?? 0 },\n        LinkedIn: { url: item.linkedin_url ?? null },\n        Status: { select: { name: \"new\" } },\n        \"Received At\": { date: { start: item.received_at } }\n      }\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        -128
+      ],
+      "id": "d9bcaf74-e86c-4789-80fc-c87869667de8",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1222878d-aa89-4d79-a300-9f5b1ab59ea0",
+  "meta": {
+    "instanceId": "3232b5b8e9f4019cace588d1d5baeffa94962a1b8e3a3bab111aeb6383547478"
+  },
+  "id": "qBEYZsb8szF33gPg",
+  "tags": []
+}

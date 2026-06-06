@@ -1,0 +1,118 @@
+{
+  "name": "RSS-AI-Discord",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "custom"
+            },
+            {
+              "mode": "everyX",
+              "value": 15,
+              "unit": "minutes"
+            }
+          ]
+        },
+        "feedUrl": "https://feeds.feedburner.com/TechCrunch"
+      },
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b9cf192d-8530-44c7-92ea-3e9cad2de1f9",
+      "name": "RSS Feed Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discordapp.com/api/webhooks/1510306944651362345/vK0u9o6Zt0Uo_rm6mPImm3E-F61OjgzVyLglRs1YWPQTfJHYj1k-bHUwwTFz6S5a3JQz",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"🔔 **{{ $json.title }}**\\n{{ $json.link }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "253fa7bb-ca7e-4379-bfdb-92599505f782",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "10be301d-d298-4ab9-a05a-64e7c22800e7",
+              "leftValue": "={{ $json.title }}",
+              "rightValue": "AI",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "bf8abab8-6c79-4102-9477-e67a2e6b8b80",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "RSS Feed Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "bfc237b4-4b3d-4f96-99f1-a3fe050b0dda",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3232b5b8e9f4019cace588d1d5baeffa94962a1b8e3a3bab111aeb6383547478"
+  },
+  "id": "cw0Q6FXGObvVGOZP",
+  "tags": []
+}

@@ -1,0 +1,257 @@
+{
+  "name": "Lead-Intake-Pipeline-enrich",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "67f6f792-1845-4992-bc09-267cef621d7f",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "url": "https://api.hunter.io/v2/email-finder",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "domain",
+              "value": "={{ $json.company.toLowerCase().replace(/\\s+/g, '') + '.com' }}"
+            },
+            {
+              "name": "first_name",
+              "value": "={{ $json.first_name }}"
+            },
+            {
+              "name": "last_name",
+              "value": "={{ $json.last_name }}"
+            },
+            {
+              "name": "api_key",
+              "value": "9e76a58f1114c03163d2490d57eb0cb478c76a5b"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "6e4457d8-fb9e-4951-8f67-a3d84bb8656b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data.email !== null }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "deaab34b-6af4-4113-9b42-6f7b12e1dd5c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "found"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8fccda28-6776-4e33-af2f-f864e00cdaa8",
+                    "leftValue": "={{ $json.data.email !== null }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "notExists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "not_found"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "35b177b4-ea67-4254-bfbb-0f8c2abf109a",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discordapp.com/api/webhooks/1510306944651362345/vK0u9o6Zt0Uo_rm6mPImm3E-F61OjgzVyLglRs1YWPQTfJHYj1k-bHUwwTFz6S5a3JQz",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"⚠️ **Lead enrichment failed**\\nName: {{ $('Code in JavaScript').item.json.full_name }}\\nEmail: {{ $('Code in JavaScript').item.json.email }}\\nCompany: {{ $('Code in JavaScript').item.json.company }}\\nReason: Hunter.io nenašel kontakt\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        64
+      ],
+      "id": "05306425-f069-470b-9a37-34e9e89f9158",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d6e72f8a-ed39-4307-848e-8a22b7a37eb8",
+              "name": "score",
+              "value": "={{ $json.data.score ?? $json.score ?? 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "43603f1a-7d2a-4afa-add1-9119ae6fb031",
+              "name": "email",
+              "value": "={{ $json.data.email }}",
+              "type": "string"
+            },
+            {
+              "id": "8850cd0d-a6c5-476f-968d-150fed44cd45",
+              "name": "linkedin_url",
+              "value": "={{ $json.data.linkedin_url }}",
+              "type": "string"
+            },
+            {
+              "id": "50b74146-5565-42f2-8ae1-e8bf724f5840",
+              "name": "first_name",
+              "value": "={{ $('When Executed by Another Workflow').item.json.first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "903ea388-2cda-44ec-8e13-4fe45ad980d2",
+              "name": "last_name",
+              "value": "={{ $('When Executed by Another Workflow').item.json.last_name }}",
+              "type": "string"
+            },
+            {
+              "id": "f04eba64-f47f-4e2b-8bbd-8ad7c8dbc68c",
+              "name": "company",
+              "value": "={{ $('When Executed by Another Workflow').item.json.company.trim() }}\n",
+              "type": "string"
+            },
+            {
+              "id": "734bc239-4fd5-497c-a986-1a4ad2c6f9dc",
+              "name": "received_at",
+              "value": "={{ $('When Executed by Another Workflow').item.json.received_at }}",
+              "type": "string"
+            },
+            {
+              "id": "ac7cc31a-0870-4c03-a2ff-120e003408b8",
+              "name": "full_name",
+              "value": "={{ $('When Executed by Another Workflow').item.json.full_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "206715d9-11b7-4334-92cb-92f984d955a9",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2069ea85-86f1-43a2-90e3-909118dec11c",
+  "meta": {
+    "instanceId": "3232b5b8e9f4019cace588d1d5baeffa94962a1b8e3a3bab111aeb6383547478"
+  },
+  "id": "z9TcBuqk3MlxEitr",
+  "tags": []
+}

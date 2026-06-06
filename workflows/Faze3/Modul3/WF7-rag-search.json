@@ -1,0 +1,121 @@
+{
+  "name": "WF7-rag-search",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fddb7ab3-84a4-4e48-8cfa-4a177b2329bd",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://qdrant:6333/collections/n8n_knowledge/points/search",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ vector: $json.embedding, limit: 4, with_payload: true }) }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "6754bbb0-d65f-4fe8-98f3-1ddee7728221",
+      "name": "Qdrant search"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://172.17.0.1:11434/api/embeddings",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"nomic-embed-text\",\n  \"prompt\": \"{{ $('When Executed by Another Workflow').item.json.query }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "9b16b197-a375-418d-a851-b0470885a867",
+      "name": "Ollama embedding"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.first().json.result;\nreturn [{ json: { text: results.map(r => r.payload.content).join('\\n\\n') } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "68162bb1-7ef6-426b-81bb-28e62df25e31",
+      "name": "respond"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Ollama embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama embedding": {
+      "main": [
+        [
+          {
+            "node": "Qdrant search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant search": {
+      "main": [
+        [
+          {
+            "node": "respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "63d6a20e-65ae-4454-ab2a-0f0b746c1a4f",
+  "meta": {
+    "instanceId": "f5b6ad2f09a8fc74e49691b8064af36d09bdc40778cf2616d7ad40aabd9c57fc"
+  },
+  "nodeGroups": [],
+  "id": "rsywG4XATFxTtRFp",
+  "tags": []
+}
