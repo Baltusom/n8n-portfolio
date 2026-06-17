@@ -1,0 +1,7 @@
+.env
+*.env
+credentials/
+*credentials*
+n8n_data/
+*.key
+*.pem

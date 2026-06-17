@@ -1,0 +1,197 @@
+{
+  "name": "Ai-agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant with access to tools. \n\nRULES:\n- ALWAYS use the calculator tool for ANY math calculation, never calculate yourself\n- ALWAYS use the weather tool when asked about weather\n- If a tool returns an error, inform the user clearly\n- Answer in the same language the user writes in\n- Be concise and direct\n\nWhen using tools, always use the result from the tool, never your own calculation."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "4d617461-8c2b-4767-8812-7488501db193",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "b2a1ab64-9118-4d40-9dea-83f1d403f23c",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "KWDj89MEGVaNv2yZ",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        224,
+        208
+      ],
+      "id": "314f6f5d-0f26-4706-8c29-9fef8ff814c3",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "98047e23-11a6-4c97-8288-98e4689a31de",
+      "name": "When chat message received",
+      "webhookId": "8ab77f1d-28dd-448d-b409-baf7a7e64f3e"
+    },
+    {
+      "parameters": {
+        "toolDescription": "You MUST use this tool whenever the user asks about weather. Input: city name as string.",
+        "url": "=https://wttr.in/{{ $fromAI('city') }}?format=3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        704,
+        112
+      ],
+      "id": "8c6fcf20-03f0-44fe-8c12-2884b1b24818",
+      "name": "get_weather"
+    },
+    {
+      "parameters": {
+        "description": "Use this tool to perform mathematical calculations. Input parameter name: input. Type: string containing mathematical expression.",
+        "jsCode": "return String(eval(query));"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        544,
+        176
+      ],
+      "id": "b408ab9f-a8c4-4711-8b36-c216b9ff650a",
+      "name": "Code Tool"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to submit a new lead. Required fields: first_name, last_name, company. Optional: email, message.",
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/lead-intake",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"first_name\": \"{{ $fromAI('first_name') }}\",\n  \"last_name\": \"{{ $fromAI('last_name') }}\",\n  \"company\": \"{{ $fromAI('company') }}\",\n  \"message\": \"{{ $fromAI('message') }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        384,
+        208
+      ],
+      "id": "11d7e555-c7b5-4162-a7e4-9984558f2cc3",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_weather": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "72fb03a1-a7c5-4e6b-8f79-6796869fc19c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3232b5b8e9f4019cace588d1d5baeffa94962a1b8e3a3bab111aeb6383547478"
+  },
+  "id": "2o2nNswWB0UIjO0z",
+  "tags": []
+}
