@@ -1,0 +1,99 @@
+{
+  "name": "Cron-CoinGecko-gmail",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 3,
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8a107a48-01f6-4ed9-82da-5596000ade5f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b30ff155-716c-40f2-85ce-6a605bcf80f6",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "sendTo": "motovsky@gmail.com",
+        "subject": "=Crypto Report {{ $now.format('dd.MM.yyyy') }}",
+        "message": "=Crypto Report {{ $now.format('dd.MM.yyyy') }}\n\nBitcoin: ${{ $json.bitcoin.usd }} ({{ $json.bitcoin.usd_24h_change.toFixed(2) }}%)\nEthereum: ${{ $json.ethereum.usd }} ({{ $json.ethereum.usd_24h_change.toFixed(2) }}%)\nSolana: ${{ $json.solana.usd }} ({{ $json.solana.usd_24h_change.toFixed(2) }}%)",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "f6e90ca8-4d8e-490b-9f9f-96b14a445f3a",
+      "name": "Send a message",
+      "webhookId": "629df17b-e313-475c-8152-8606c8a01697",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TmOHq5IsCzvHj53r",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4647ae1a-072c-4a31-9834-9f2dc102386a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3232b5b8e9f4019cace588d1d5baeffa94962a1b8e3a3bab111aeb6383547478"
+  },
+  "id": "qSkF6TAVYHx7Z8Nv",
+  "tags": []
+}
